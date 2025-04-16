@@ -4,8 +4,14 @@ import psutil
 import asyncio
 import requests
 from xml.etree import ElementTree
+from typing import List, Dict, Any
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from urllib.parse import urlparse
+from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 
 __location__ = os.path.dirname(os.path.abspath(__file__))
 __output__ = os.path.join(__location__, "output")
@@ -14,9 +20,44 @@ __output__ = os.path.join(__location__, "output")
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-from typing import List
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 
+
+@dataclass
+class ProcessedChunk:
+    url: str
+    chunk_number: int
+    title: str
+    summary: str
+    content: str
+    metadata: Dict[str, Any]
+    embedding: List[float]
+    
+async def process_chunk(chunk: str, chunk_number: int, url: str) -> ProcessChunk:
+    """Process a single chunk of text"""
+    # Get title and summary
+    extracted = await get_title_and_summary(chunk, url)
+    
+    # Get embedding
+    embedding = await get_embedding(chunk)
+    
+    # Create metadata
+    metadata = {
+        "source": "git_docs",
+        "chunk_size": len(chunk),
+        "crawled_at": datetime.now(timezone.utc).isoformat(),
+        "url_path": urlparse(url).path,
+    }
+    
+    return ProcessedChunk(
+        url=url,
+        chunk_number=chunk_number,
+        title=extracted['title'],
+        summary=extracted['summary'],
+        content=chunk,  # Store the original chunk content
+        metadata=metadata,
+        embedding=embedding
+    )
+    
 def chunk_text(text: str, chunk_size: int = 5000) -> List[str]:
     """Split text into chunks, respecting code blocks and paragraphs."""
     chunks = []
