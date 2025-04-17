@@ -1,6 +1,7 @@
 import os
 import sys
 import psutil
+import json
 import asyncio
 import requests
 from xml.etree import ElementTree
@@ -41,7 +42,7 @@ class ProcessedChunk:
     metadata: Dict[str, Any]
     embedding: List[float]
     
-async def process_chunk(chunk: str, chunk_number: int, url: str) -> ProcessChunk:
+async def process_chunk(chunk: str, chunk_number: int, url: str) -> ProcessedChunk:
     """Process a single chunk of text"""
     # Get title and summary
     extracted = await get_title_and_summary(chunk, url)
@@ -165,10 +166,10 @@ async def insert_chunk(chunk: ProcessedChunk):
         print(f"Error inserting chunk: {e}")
         return None
     
-async def process_and_store_document(url: str, document: str):
+async def process_and_store_document(url: str, markdown: str):
     """ Process a document and store its chunks in parallel."""
     # Split into chunks
-    chunks = chunk_test(markdown)
+    chunks = chunk_text(markdown)
     
     # Process chunks in parallel
     tasks = [
