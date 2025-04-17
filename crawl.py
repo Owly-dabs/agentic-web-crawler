@@ -1,6 +1,5 @@
 import os
 import sys
-import psutil
 import json
 import asyncio
 import requests
@@ -15,6 +14,7 @@ from bs4 import BeautifulSoup
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from openai import AsyncOpenAI
 from supabase import create_client, Client
+import ollama
 
 __location__ = os.path.dirname(os.path.abspath(__file__))
 __output__ = os.path.join(__location__, "output")
@@ -211,7 +211,7 @@ async def crawl_parallel(urls: List[str], max_concurrent: int = 5):
                 )
                 if result.success:
                     print(f"Successfully crawled: {url}")
-                    await process_and_store_document(url, result.markdown_v2.raw_markdown)
+                    await process_and_store_document(url, result.markdown.raw_markdown)
                 else:
                     print(f"Failed: {url} - Error: {result.error_message}")
         
@@ -239,7 +239,7 @@ def get_git_urls() -> list:
     full_urls = ["https://git-scm.com" + link if link.startswith('/') else link 
                 for link in command_links]
 
-    return full_urls
+    return full_urls #[:20]
 
 def get_urls_from_sitemap(url:str) -> List[str]:
     """Get URLs from Pydantic AI docs sitemap."""
@@ -265,7 +265,7 @@ async def main():
     if urls:
         print(f"Found {len(urls)} URLs to crawl")
         print(urls)  
-        await crawl_parallel(urls, max_concurrent=10)
+        # await crawl_parallel(urls, max_concurrent=10)
     else:
         print("No URLs found to crawl")    
 
