@@ -239,7 +239,7 @@ def get_git_urls() -> list:
     full_urls = ["https://git-scm.com" + link if link.startswith('/') else link 
                 for link in command_links]
 
-    return full_urls #[:20]
+    return full_urls #[:20] IMPORTANT: Limited to 20 for testing
 
 def get_urls_from_sitemap(url:str) -> List[str]:
     """Get URLs from Pydantic AI docs sitemap."""
@@ -265,7 +265,7 @@ async def main():
     if urls:
         print(f"Found {len(urls)} URLs to crawl")
         print(urls)  
-        # await crawl_parallel(urls, max_concurrent=10)
+        await crawl_parallel(urls, max_concurrent=10)
     else:
         print("No URLs found to crawl")    
 
